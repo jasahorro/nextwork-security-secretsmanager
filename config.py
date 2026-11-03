@@ -1,6 +1,32 @@
-# config.py - TEMPORARY for demonstration only
-# WARNING: This is NOT safe for production! We'll fix it with Secrets Manager.
+import boto3
+import json
+from botocore.exceptions import ClientError
 
-AWS_ACCESS_KEY_ID = "YOUR_ACTUAL_ACCESS_KEY_ID"
-AWS_SECRET_ACCESS_KEY = "YOUR_ACTUAL_SECRET_ACCESS_KEY"
+
+def get_secret():
+
+    secret_name = "aws-access-key"
+    region_name = "us-east-1"
+
+    # Create a Secrets Manager client
+    session = boto3.session.Session()
+    client = session.client(
+        service_name='secretsmanager',
+        region_name=region_name
+    )
+
+    try:
+        get_secret_value_response = client.get_secret_value(
+            SecretId=secret_name
+        )
+    except ClientError as e:
+        raise e
+
+    secret = get_secret_value_response['SecretString']
+    return json.loads(secret)
+
+
+secret = get_secret()
+AWS_ACCESS_KEY_ID = secret["AWS_ACCESS_KEY_ID"]
+AWS_SECRET_ACCESS_KEY = secret["AWS_SECRET_ACCESS_KEY"]
 AWS_REGION = "us-east-2"
